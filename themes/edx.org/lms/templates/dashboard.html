@@ -131,6 +131,11 @@ from student.models import CourseEnrollment
         id="upsell-modal",
         props={},
       )}
+      ${static.renderReact(
+        component="PortfolioExperimentUpsellModal",
+        id="portfolio-experiment-upsell-modal",
+        props={},
+      )}
   % endif
   <section class="my-courses" id="my-courses">
     <header class="wrapper-header-courses">

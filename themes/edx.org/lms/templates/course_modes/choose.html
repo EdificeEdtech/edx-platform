@@ -91,6 +91,11 @@ from openedx.features.learner_analytics import INCLUDE_UPSELL_MODAL
               id="upsell-modal",
               props={},
             )}
+            ${static.renderReact(
+              component="PortfolioExperimentUpsellModal",
+              id="portfolio-experiment-upsell-modal",
+              props={}
+            )}
         % endif
         <section class="wrapper">
             <div class="wrapper-register-choose wrapper-content-main">
