@@ -22,7 +22,7 @@ def get_course_scores(course_id):
     course = courses.get_course(course_key)
 
     students = []
-    enrolled_students = CourseEnrollment.objects.users_enrolled_in(course_key)
+    enrolled_students = [student for student in CourseEnrollment.objects.users_enrolled_in(course_key) if student.is_active]
     for student in enrolled_students:
         student_descriptor = build_student(course, student)
         students.append(student_descriptor)
