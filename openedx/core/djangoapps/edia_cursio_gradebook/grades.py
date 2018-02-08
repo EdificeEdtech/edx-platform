@@ -24,7 +24,7 @@ from .noop import outer_atomic
 from util.module_utils import yield_dynamic_descriptor_descendants
 from xblock.core import XBlock
 from xmodule import graders, block_metadata_utils
-from xmodule.graders import Score
+from xmodule.graders import ProblemScore
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.exceptions import ItemNotFoundError
 from courseware.models import StudentModule
@@ -383,7 +383,7 @@ def _calculate_totaled_scores(
                             graded = False
 
                         scores.append(
-                            Score(
+                            ProblemScore(
                                 correct,
                                 total,
                                 graded,
@@ -396,7 +396,7 @@ def _calculate_totaled_scores(
                     if keep_raw_scores:
                         raw_scores += scores
                 else:
-                    graded_total = Score(0.0, 1.0, True, section_name, None)
+                    graded_total = ProblemScore(0.0, 1.0, True, section_name, None)
 
                 # Add the graded total to totaled_scores
                 if graded_total.possible > 0:
@@ -524,7 +524,7 @@ def _progress_summary(student, course, course_structure=None):
                 if correct is None and total is None:
                     continue
 
-                weighted_location_score = Score(
+                weighted_location_score = ProblemScore(
                     correct,
                     total,
                     graded,
