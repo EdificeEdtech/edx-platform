@@ -112,6 +112,8 @@ urlpatterns = (
 
     url(r'^dashboard/', include('learner_dashboard.urls')),
     url(r'^api/experiments/', include('experiments.urls', namespace='api_experiments')),
+
+    url(r'^api/scores/', include('openedx.core.djangoapps.edia_cursio_gradebook.urls')),
 )
 
 # TODO: This needs to move to a separate urls.py once the student_account and
