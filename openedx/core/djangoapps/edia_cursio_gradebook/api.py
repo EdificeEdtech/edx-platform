@@ -3,7 +3,7 @@ import pprint
 
 from courseware import courses
 from django.contrib.auth.models import User
-from .grades import get_weighted_scores, progress_summary
+from .grades import get_weighted_scores
 from django.db import transaction
 from opaque_keys.edx.keys import CourseKey
 from student.models import CourseEnrollment

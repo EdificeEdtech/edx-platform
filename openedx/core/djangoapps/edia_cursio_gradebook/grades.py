@@ -19,7 +19,6 @@ from openedx.core.djangoapps.content.block_structure.api import get_course_in_ca
 from openedx.core.lib.cache_utils import memoized
 from openedx.core.lib.gating import api as gating_api
 from courseware.model_data import FieldDataCache, ScoresClient
-from openedx.core.djangoapps.signals.signals import GRADES_UPDATED
 from student.models import anonymous_id_for_user
 from .noop import outer_atomic
 from util.module_utils import yield_dynamic_descriptor_descendants
@@ -261,27 +260,6 @@ def answer_distributions(course_key):
             continue
 
     return answer_counts
-
-
-def grade(student, course, keep_raw_scores=False, course_structure=None):
-    """
-    Returns the grade of the student.
-
-    Also sends a signal to update the minimum grade requirement status.
-    """
-    grade_summary = _grade(student, course, keep_raw_scores, course_structure)
-    responses = GRADES_UPDATED.send_robust(
-        sender=None,
-        username=student.username,
-        grade_summary=grade_summary,
-        course_key=course.id,
-        deadline=course.end
-    )
-
-    for receiver, response in responses:
-        log.info('Signal fired when student grade is calculated. Receiver: %s. Response: %s', receiver, response)
-
-    return grade_summary
 
 
 def _grade(student, course, keep_raw_scores, course_structure=None):
@@ -638,47 +616,6 @@ def get_score(user, block, scores_client, submissions_scores_cache):
             return (None, None)
 
     return weighted_score(correct, total, block.weight)
-
-
-def iterate_grades_for(course_or_id, students, keep_raw_scores=False):
-    """Given a course_id and an iterable of students (User), yield a tuple of:
-
-    (student, gradeset, err_msg) for every student enrolled in the course.
-
-    If an error occurred, gradeset will be an empty dict and err_msg will be an
-    exception message. If there was no error, err_msg is an empty string.
-
-    The gradeset is a dictionary with the following fields:
-
-    - grade : A final letter grade.
-    - percent : The final percent for the class (rounded up).
-    - section_breakdown : A breakdown of each section that makes
-        up the grade. (For display)
-    - grade_breakdown : A breakdown of the major components that
-        make up the final grade. (For display)
-    - raw_scores: contains scores for every graded module
-    """
-    if isinstance(course_or_id, (basestring, CourseKey)):
-        course = courses.get_course_by_id(course_or_id)
-    else:
-        course = course_or_id
-
-    for student in students:
-        with dog_stats_api.timer('lms.grades.iterate_grades_for', tags=[u'action:{}'.format(course.id)]):
-            try:
-                gradeset = grade(student, course, keep_raw_scores)
-                yield student, gradeset, ""
-            except Exception as exc:  # pylint: disable=broad-except
-                # Keep marching on even if this student couldn't be graded for
-                # some reason, but log it for future reference.
-                log.exception(
-                    'Cannot grade student %s (%s) in course %s because of exception: %s',
-                    student.username,
-                    student.id,
-                    course.id,
-                    exc.message
-                )
-                yield student, {}, exc.message
 
 
 def _get_mock_request(student):
