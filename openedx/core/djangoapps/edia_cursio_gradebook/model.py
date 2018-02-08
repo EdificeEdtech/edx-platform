@@ -30,6 +30,44 @@ class StudentDescriptor:
         self.progress = progress
         self.course_key = course_key
         self.course_name = course_name
+
+
+class ProgressSummary:
+    chapters = []
+
+    def __init__(self, chapters=[]):
+        self.chapters = chapters;
+
+
+class Chapter:
+    course = None
+    display_name = None
+    url_name = None
+    sections = []
+
+    def __init__(self, course, display_name, url_name, sections=[]):
+        self.course = course;
+        self.display_name = display_name;
+        self.url_name = url_name;
+        self.sections = sections;
+
+
+class Section:
+    display_name = None
+    url_name = None
+    section_total = None
+    scores = []
+    format = None
+    graded = False
+
+    def __init__(self, display_name, url_name, section_total, scores, format, graded):
+        self.display_name = display_name;
+        self.url_name = url_name;
+        self.section_total = section_total;
+        self.scores = scores;
+        self.format = format;
+        self.graded = graded;
+
 #
 #
 # class Score:

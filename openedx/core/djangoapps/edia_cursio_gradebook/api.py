@@ -1,15 +1,17 @@
 import logging
 import pprint
+import json
 
 from courseware import courses
 from django.contrib.auth.models import User
-from .grades import get_weighted_scores
+# from .grades import get_weighted_scores
+from lms.djangoapps.grades.new.course_grade_factory import CourseGradeFactory
 from django.db import transaction
 from opaque_keys.edx.keys import CourseKey
 from student.models import CourseEnrollment
 from student.models import anonymous_id_for_user, user_by_anonymous_id
-from model import StudentDescriptor, CourseDescriptor
-from social.apps.django_app.default.models import UserSocialAuth
+from model import StudentDescriptor, CourseDescriptor, ProgressSummary, Chapter, Section
+from social_django.models import UserSocialAuth
 
 LOG = logging.getLogger('edia.gradebook.api')
 
@@ -38,15 +40,34 @@ def get_student_scores(course_id, username):
 
 @transaction.non_atomic_requests
 def get_course_outline(user, course_id):
-    pp = pprint.PrettyPrinter(indent=4, depth=6)
+    # pp = pprint.PrettyPrinter(indent=4, depth=6)
     course_key = CourseKey.from_string(unicode(course_id));
     course = courses.get_course(course_key)
     progress = get_weighted_scores(user, course)
     return progress
 
 
+def get_weighted_scores(student, course):
+    chapter_grades = CourseGradeFactory().create(student, course).chapter_grades
+    return ProgressSummary(get_chapters(chapter_grades, course))
+
+
+def get_chapters(chapter_grades, course):
+    for chapter in chapter_grades.values():
+        yield Chapter(course.id, chapter['display_name'], chapter['url_name'], get_sections(chapter))
+
+
+def get_sections(chapter):
+    for section in chapter['sections']:
+        yield Section(section.display_name,
+                      section.url_name,
+                      section.all_total,
+                      section.problem_scores.values(),
+                      section.format, section.graded)
+
+
 def build_student(course, student):
-    pp = pprint.PrettyPrinter(indent=4, depth=6)
+    # pp = pprint.PrettyPrinter(indent=4, depth=6)
     anonymous = anonymous_id_for_user(student, course.id)
     progress = get_weighted_scores(student, course)
     student_number = get_student_number(student)

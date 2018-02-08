@@ -1,31 +1,25 @@
 from rest_framework import serializers
 
 
-# class _ScoresSerializer(serializers.Serializer):
-#     block_id = serializers.CharField()
-#     course_key = serializers.CharField()
-#     block_type = serializers.CharField()
-#     earned = serializers.FloatField()
-#     possible = serializers.FloatField()
-#     graded = serializers.BooleanField()
-#     section = serializers.CharField()
-#     location = serializers.CharField()
-#
-#
-
 class ScoreSerializer(serializers.Serializer):
     earned = serializers.FloatField()
     possible = serializers.FloatField()
     graded = serializers.BooleanField()
-    module_id = serializers.CharField()
-    section = serializers.CharField()
+
+
+class ProblemScoreSerializer(serializers.Serializer):
+    raw_earned = serializers.FloatField()
+    raw_possible = serializers.FloatField()
+    earned = serializers.FloatField()
+    possible = serializers.FloatField()
+    graded = serializers.BooleanField()
 
 
 class SectionSerializer(serializers.Serializer):
     display_name = serializers.CharField()
     url_name = serializers.CharField()
     section_total = ScoreSerializer()
-    scores = ScoreSerializer(many=True)
+    scores = ProblemScoreSerializer(many=True)
     format = serializers.CharField()
     graded = serializers.BooleanField()
 
