@@ -453,9 +453,7 @@ class LTIModule(LTIFields, LTI20ModuleMixin, XModule):
         return Response(template, content_type='text/html')
 
     def get_user_id(self):
-        user_id = str(self.runtime.user_id)
-        if user_id is None:
-            user_id = self.runtime.anonymous_student_id
+        user_id = self.runtime.anonymous_student_id
         assert user_id is not None
         return unicode(urllib.quote(user_id))
 
