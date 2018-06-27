@@ -39,7 +39,8 @@ def get_student_scores(course_id, username):
     course_key = CourseKey.from_string(unicode(course_id));
     course = courses.get_course(course_key)
     student = get_student_from_identifier(username)
-    return build_student(course, student)
+    student_scores,_,_ = build_student(course, student)
+    return student_scores
 
 
 @transaction.non_atomic_requests
@@ -47,7 +48,7 @@ def get_course_outline(user, course_id):
     # pp = pprint.PrettyPrinter(indent=4, depth=6)
     course_key = CourseKey.from_string(unicode(course_id));
     course = courses.get_course(course_key)
-    progress = get_weighted_scores(user, course)
+    progress,_,_ = get_weighted_scores(user, course)
     return progress
 
 
