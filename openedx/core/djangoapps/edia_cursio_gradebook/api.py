@@ -5,7 +5,8 @@ import json
 from courseware import courses
 from django.contrib.auth.models import User
 # from .grades import get_weighted_scores
-from lms.djangoapps.grades.new.course_grade_factory import CourseGradeFactory
+from lms.djangoapps.grades.new.course_grade import CourseGrade
+from lms.djangoapps.grades.new.course_data import CourseData
 from django.db import transaction
 from opaque_keys.edx.keys import CourseKey
 from student.models import CourseEnrollment
@@ -24,8 +25,10 @@ def get_course_scores(course_id):
     students = []
     # enrolled_students = [student for student in CourseEnrollment.objects.users_enrolled_in(course_key) if student.is_active]
     enrolled_students = [student for student in CourseEnrollment.objects.users_enrolled_in(course_key)]
+    collected_block_structure = None
+    structure = None
     for student in enrolled_students:
-        student_descriptor = build_student(course, student)
+        student_descriptor, collected_block_structure, structure = build_student(course, student, collected_block_structure, structure)
         students.append(student_descriptor)
 
     return CourseDescriptor(id=course.id, course_key=course_id, course_name=course.display_name, students=students)
@@ -48,9 +51,14 @@ def get_course_outline(user, course_id):
     return progress
 
 
-def get_weighted_scores(student, course):
-    chapter_grades = CourseGradeFactory().create(student, course).chapter_grades
-    return ProgressSummary(get_chapters(chapter_grades, course))
+def get_weighted_scores(student, course, collected_block_structure=None, structure=None):
+    course_data = CourseData(student, course, collected_block_structure=collected_block_structure, structure=structure)
+    collected_block_structure = course_data.collected_structure
+    structure = course_data.structure
+
+    course_grade = CourseGrade(student, course_data)
+    chapter_grades = course_grade.chapter_grades
+    return ProgressSummary(get_chapters(chapter_grades, course)), collected_block_structure, structure
 
 
 def get_chapters(chapter_grades, course):
@@ -67,10 +75,10 @@ def get_sections(chapter):
                       section.format, section.graded)
 
 
-def build_student(course, student):
+def build_student(course, student, collected_block_structure=None, structure=None):
     # pp = pprint.PrettyPrinter(indent=4, depth=6)
     anonymous = anonymous_id_for_user(student, course.id)
-    progress = get_weighted_scores(student, course)
+    progress, collected_block_structure, structure = get_weighted_scores(student, course, collected_block_structure=collected_block_structure, structure=structure)
     student_number = get_student_number(student)
 
     # LOG.info(pp.pformat(progress))
@@ -82,7 +90,7 @@ def build_student(course, student):
                                            progress=progress,
                                            course_key=course.id,
                                            course_name=course.display_name)
-    return student_descriptor
+    return student_descriptor, collected_block_structure, structure
 
 
 def get_student_number(student):
